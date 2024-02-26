@@ -7,7 +7,7 @@ import (
 
 	"net/http"
 
-	"github.com/muslimitsuhode/vk-security-hw/proxy"
+	"github.com/muslimitsuhide/vk-security-hw/go_proxy/proxy"
 )
 
 func main() {
