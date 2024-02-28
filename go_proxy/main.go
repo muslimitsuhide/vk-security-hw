@@ -2,17 +2,15 @@ package main
 
 import (
 	"crypto/tls"
+	"database/sql"
 	"flag"
 	"log"
-
 	"net/http"
 
-	"github.com/muslimitsuhide/vk-security-hw/tree/main/go_proxy/proxy"
+	"github.com/muslimitsuhide/vk-security-hw/proxy"
 )
 
 func main() {
-	p := &proxy.Proxy{}
-
 	certsDir := "certs"
 
 	var protocol, crt, key string
@@ -21,9 +19,15 @@ func main() {
 	flag.StringVar(&protocol, "protocol", "http", "")
 	flag.Parse()
 
+	db, err := sql.Open("sqlite3", "./requests.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      p,
+		Handler:      proxy.NewProxy(db),
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 	}
 
@@ -32,14 +36,11 @@ func main() {
 		if err := server.ListenAndServe(); err != nil {
 			log.Fatalf(err.Error())
 		}
-		break
 	case "https":
 		if err := server.ListenAndServeTLS(crt, key); err != nil {
 			log.Fatalf(err.Error())
 		}
-		break
 	default:
 		log.Println("http or https allowed")
-		break
 	}
 }
